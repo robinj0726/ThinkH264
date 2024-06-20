@@ -21,7 +21,10 @@ class BitStream:
     
     def se(self):
         return self._bs.read('se')
-    
+
+    def byte_aligned(self):
+        return self._bs.pos % 8 == 0
+   
     # perform anti-emulation prevention
     def convertPayloadToRBSP(self):
         self._bs.replace('0x000003', '0x0000', bytealigned=True)
