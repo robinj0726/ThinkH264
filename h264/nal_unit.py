@@ -1,4 +1,5 @@
 from .sps import SPS
+from .pps import PPS
 
 class NALUnit:
     def __init__(self, bitstream):
@@ -21,5 +22,3 @@ class NALUnit:
             else:
                 self.avc_3d_extension_flag = self._bs.u(1)
         
-        if self.nal_unit_type == 7: # SPS
-            self._bs.sps = SPS(self._bs)
