@@ -3,6 +3,7 @@ class PPS:
         self._bs = bitstream
 
         self.pic_parameter_set_rbsp()
+        self.rbsp_trailing_bits()
 
     def pic_parameter_set_rbsp(self):
         self.pic_parameter_set_id = self._bs.ue()
@@ -63,7 +64,6 @@ class PPS:
                             pass
                             #scaling_list( ScalingList8x8[ i − 6 ], 64, UseDefaultScalingMatrix8x8Flag[ i − 6 ] )
             self.second_chroma_qp_index_offset = self._bs.se()
-        self.rbsp_trailing_bits()
 
     def rbsp_trailing_bits(self):
         # if self.bits.more_data():
