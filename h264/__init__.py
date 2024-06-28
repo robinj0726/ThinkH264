@@ -1,5 +1,5 @@
-from .bit_stream import BitStream
-from .nal_unit import NALUnit
+from .bitstream import BitStream
+from .nalunit import NALUnit
 from .sps import SPS
 from .pps import PPS
 from .slice import Slice

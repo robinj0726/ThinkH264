@@ -1,4 +1,4 @@
-from .nal_unit import NALUnit
+from .nalunit import NALUnit
 
 class BitStream:
     def __init__(self, bits):
