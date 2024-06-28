@@ -129,5 +129,35 @@ class SPS:
 
     def sps_not_present(self):
         keys = self.__dict__.keys()
+        if "chroma_format_idc" not in keys:
+            self.chroma_format_idc = 1
         if "separate_colour_plane_flag" not in keys:
             self.separate_colour_plane_flag = 0
+            self.ChromaArrayType = self.chroma_format_idc
+        if self.chroma_format_idc == 1 and self.separate_colour_plane_flag == 0:
+            self.SubWidthC = 2
+            self.SubHeightC = 2
+        elif self.chroma_format_idc == 2 and self.separate_colour_plane_flag == 0:
+            self.SubWidthC = 2
+            self.SubHeightC = 1
+        elif self.chroma_format_idc == 3 and self.separate_colour_plane_flag == 0:
+            self.SubWidthC = 1
+            self.SubHeightC = 1
+        if self.chroma_format_idc == 0 or self.separate_colour_plane_flag == 1:
+            self.MbWidthC = 0
+            self.MbHeightC = 0
+        else:
+            self.MbWidthC = 16 // self.SubWidthC
+            self.MbHeightC = 16 // self.SubHeightC
+        if "bit_depth_luma_minus8" not in keys:
+            self.bit_depth_luma_minus8 = 0
+            self.BitDepth_Y = 8 + self.bit_depth_luma_minus8
+            self.QpBdOffset_Y = 6 * self.bit_depth_luma_minus8
+        if "bit_depth_chroma_minus8" not in keys:
+            self.bit_depth_chroma_minus8 = 0
+            self.BitDepth_C = 8 + self.bit_depth_chroma_minus8
+            self.QpBdOffset_C = 6 * self.bit_depth_chroma_minus8
+        if "qpprime_y_zero_transform_bypass_flag" not in keys:
+            self.qpprime_y_zero_transform_bypass_flag = 0
+        if "mb_adaptive_frame_field_flag" not in keys:
+            self.mb_adaptive_frame_field_flag = 0
