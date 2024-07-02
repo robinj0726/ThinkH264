@@ -1,6 +1,14 @@
+import numpy as np
+
+
 class SPS:
     def __init__(self, bits):
         self._bits = bits
+        self._seq_scaling_list_present_flag = np.zeros((12), dtype=int)
+        self._ScalingList4x4 = np.zeros((6, 16), dtype=int)
+        self._UseDefaultScalingMatrix4x4Flag = np.zeros((6), dtype=int)
+        self._ScalingList8x8 = np.zeros((6, 64), dtype=int)
+        self._UseDefaultScalingMatrix8x8Flag = np.zeros((6), dtype=int)
 
         self.seq_parameter_set_data()
         self.sps_not_present()
@@ -16,15 +24,28 @@ class SPS:
         self.constraint_set1_flag = self._bits.u(1)
         self.constraint_set2_flag = self._bits.u(1)
         self.constraint_set3_flag = self._bits.u(1)
-        self.constraint_set3_flag = self._bits.u(1)
-        self.constraint_set3_flag = self._bits.u(1)
+        self.constraint_set4_flag = self._bits.u(1)
+        self.constraint_set5_flag = self._bits.u(1)
         self.reserved_zero_2bits = self._bits.u(2)
         self.level_idc = self._bits.u(8)
         self.seq_parameter_set_id = self._bits.ue()
         if self.profile_idc == 100 or self.profile_idc == 110 or self.profile_idc == 122 or self.profile_idc == 244 or self.profile_idc == 44 or self.profile_idc == 83 or self.profile_idc == 86 or self.profile_idc == 118 or self.profile_idc == 128 or self.profile_idc == 138 or self.profile_idc == 139 or self.profile_idc == 134 or self.profile_idc == 135 :
-            raise NameError('sps:26 not impl')
-        
-
+            self.chroma_format_idc = self._bits.ue()
+            if self.chroma_format_idc == 3:
+                self.separate_colour_plane_flag = self._bits.u(1)
+            self.bit_depth_chroma_minus8 = self._bits.ue()
+            self.bit_depth_luma_minus8 = self._bits.ue()
+            self.qpprime_y_zero_transform_bypass_flag = self._bits.u(1)
+            self.seq_scaling_matrix_present_flag = self._bits.u(1)
+            if self.seq_scaling_matrix_present_flag:
+                for i in range(8 if self.chroma_format_idc != 3 else 12):
+                    self._seq_scaling_list_present_flag[i] = self._bits.u(1)
+                    if self._seq_scaling_list_present_flag[i]:
+                        if i < 6:
+                            self.scaling_list(self._ScalingList4x4[i], 16, self._UseDefaultScalingMatrix4x4Flag[i])
+                        else:
+                            self.scaling_list(self._ScalingList8x8[i-6] ,64, self._UseDefaultScalingMatrix8x8Flag[i-6])
+                        
         self.log2_max_frame_num_minus4 = self._bits.ue()
         self.pic_order_cnt_type = self._bits.ue()
         if self.pic_order_cnt_type == 0 :
@@ -56,6 +77,16 @@ class SPS:
         self.vui_parameters_present_flag = self._bits.u(1)
         if self.vui_parameters_present_flag:
             self.vui_parameters()
+
+    def scaling_list(self, scalingList, sizeOfScalingList):
+        lastScale = 8
+        nextScale = 8
+        for j in range(sizeOfScalingList):
+            if nextScale != 0:
+                self.delta_scale = self._bits.se()
+                nextScale = (lastScale + self.delta_scale + 256) % 256
+            scalingList[j] = lastScale if nextScale == 0 else nextScale
+            lastScale = scalingList[j]
 
     def vui_parameters(self):
         self.aspect_ratio_info_present_flag = self._bits.u(1)
@@ -103,8 +134,8 @@ class SPS:
             self.log2_max_mv_length_vertical = self._bits.ue()
             self.max_num_reorder_frames = self._bits.ue()
             self.max_dec_frame_buffering = self._bits.ue()
-
-    def hrd_parameters(self):
+        
+    def hrd_parameters(self): 
         self.cpb_cnt_minus1 = self._bits.ue()
         self.bit_rate_scale = self._bits.u(4)
         self.cpb_size_scale = self._bits.u(4)
