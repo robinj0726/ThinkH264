@@ -4,11 +4,6 @@ import numpy as np
 class SPS:
     def __init__(self, bits):
         self._bits = bits
-        self._seq_scaling_list_present_flag = np.zeros((12), dtype=int)
-        self._ScalingList4x4 = np.zeros((6, 16), dtype=int)
-        self._UseDefaultScalingMatrix4x4Flag = np.zeros((6), dtype=int)
-        self._ScalingList8x8 = np.zeros((6, 64), dtype=int)
-        self._UseDefaultScalingMatrix8x8Flag = np.zeros((6), dtype=int)
 
         self.seq_parameter_set_data()
         self.sps_not_present()
@@ -38,13 +33,19 @@ class SPS:
             self.qpprime_y_zero_transform_bypass_flag = self._bits.u(1)
             self.seq_scaling_matrix_present_flag = self._bits.u(1)
             if self.seq_scaling_matrix_present_flag:
+                self.seq_scaling_list_present_flag = np.zeros((12), dtype=int)
+                self.ScalingList4x4 = np.zeros((6, 16), dtype=int)
+                self.UseDefaultScalingMatrix4x4Flag = np.zeros((6), dtype=int)
+                self.ScalingList8x8 = np.zeros((6, 64), dtype=int)
+                self.UseDefaultScalingMatrix8x8Flag = np.zeros((6), dtype=int)
+                
                 for i in range(8 if self.chroma_format_idc != 3 else 12):
-                    self._seq_scaling_list_present_flag[i] = self._bits.u(1)
-                    if self._seq_scaling_list_present_flag[i]:
+                    self.seq_scaling_list_present_flag[i] = self._bits.u(1)
+                    if self.seq_scaling_list_present_flag[i]:
                         if i < 6:
-                            self.scaling_list(self._ScalingList4x4[i], 16, self._UseDefaultScalingMatrix4x4Flag[i])
+                            self.scaling_list(self.ScalingList4x4[i], 16, self.UseDefaultScalingMatrix4x4Flag[i])
                         else:
-                            self.scaling_list(self._ScalingList8x8[i-6] ,64, self._UseDefaultScalingMatrix8x8Flag[i-6])
+                            self.scaling_list(self.ScalingList8x8[i-6] ,64, self.UseDefaultScalingMatrix8x8Flag[i-6])
                         
         self.log2_max_frame_num_minus4 = self._bits.ue()
         self.pic_order_cnt_type = self._bits.ue()
