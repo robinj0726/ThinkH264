@@ -7,6 +7,10 @@ class H264BitStream:
         # function delegation
         self.replace = self._bits.replace
 
+    @property
+    def pos(self):
+        return self._bits.pos
+    
     def __repr__(self):
         return f'BitStream(data="{self._bits}")'
         
