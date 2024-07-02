@@ -4,6 +4,8 @@ class NALUnit:
         # self.NumBytesInRBSP = 0 
         # self.nalUnitHeaderBytes = 1
 
+        self.nal_to_rbsp()  
+
         self.nal_unit()
 
     def __repr__(self):
@@ -33,8 +35,6 @@ class NALUnit:
             else:
                 self.nal_unit_header_mvc_extension()
                 self.nalUnitHeaderBytes += 3
-
-        self.nal_to_rbsp()  
 
     def nal_unit_header_svc_extension(self):
         pass
