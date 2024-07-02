@@ -15,11 +15,11 @@ class Slice:
         
         self.slice_variables()
 
-        self.slice_data()
+        # self.slice_data()
 
     def __repr__(self):
         attrs = ', '.join(f'{k}={v}' for k, v in self.__dict__.items() if not k.startswith('_'))
-        return f'PPS({attrs})'
+        return f'Slice({attrs})'
 
     def slice_header(self):
         self.IdrPicFlag = 1 if self._params["nal_unit_type"] == 5 else 0
@@ -57,7 +57,7 @@ class Slice:
         if self.slice_type == "B" :
             self.direct_spatial_mv_pred_flag = self._bits.u(1)
         if self.slice_type == "P" or self.slice_type == "SP" or self.slice_type == "B" :
-            self.num_ref_idx_active_override_flag = self.bits.u(1)
+            self.num_ref_idx_active_override_flag = self._bits.u(1)
             if self.num_ref_idx_active_override_flag > 0 :
                 self.num_ref_idx_l0_active_minus1 = self._bits.ue()
                 if self.slice_type == "B" :
@@ -204,7 +204,7 @@ class Slice:
                 else :
                     self.end_of_slice_flag = self._bits.ae()
                     moreDataFlag = not self.end_of_slice_flag
-            # self.CurrMbAddr = self.NextMbAddress(self.CurrMbAddr)
+            self.CurrMbAddr = self.NextMbAddress(self.CurrMbAddr)
             if not moreDataFlag:
                 break
 
