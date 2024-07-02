@@ -1,9 +1,11 @@
 from .nalunit import NALUnit
 
-class BitStream:
+class H264BitStream:
     def __init__(self, bits):
         self._bits = bits[24:]
-        self.convertPayloadToRBSP()
+
+        # function delegation
+        self.replace = self._bits.replace
 
     def __repr__(self):
         return f'BitStream(data="{self._bits}")'
@@ -37,9 +39,6 @@ class BitStream:
                 else:
                     return True
             i -= 1
-
-    # perform anti-emulation prevention
-    def convertPayloadToRBSP(self):
-        self._bits.replace('0x000003', '0x0000', bytealigned=True)
+    
 
     

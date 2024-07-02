@@ -3,11 +3,12 @@ from .macroblock import Macroblock
 SLICE_TYPES = {0:"P",1:"B",2:"I",3:"SP",4:"SI",5:"P",6:"B",7:"I",8:"SP",9:"SI"}
 
 class Slice:
-    def __init__(self, bits, sps, ppss, params):
+    def __init__(self, bits, nalu, sps, ppss):
         self._bits = bits
+
+        self._nalu = nalu
         self._sps = sps
         self._pps_list = ppss
-        self._params = params
 
         self._mbs = []
 
@@ -22,7 +23,7 @@ class Slice:
         return f'Slice({attrs})'
 
     def slice_header(self):
-        self.IdrPicFlag = 1 if self._params["nal_unit_type"] == 5 else 0
+        self.IdrPicFlag = 1 if self._nalu.nal_unit_type == 5 else 0
 
         self.first_mb_in_slice = self._bits.ue()
         self.slice_type_int = self._bits.ue()
@@ -62,7 +63,7 @@ class Slice:
                 self.num_ref_idx_l0_active_minus1 = self._bits.ue()
                 if self.slice_type == "B" :
                     self.num_ref_idx_l1_active_minus1 = self._bits.ue()
-        if self._params["nal_unit_type"] == 20 or self._params["nal_unit_type"] == 21 :
+        if self._nalu.nal_unit_type == 20 or self._nalu.nal_unit_type == 21 :
             self.ref_pic_list_mvc_modification()
         else:
             self.ref_pic_list_modification()
@@ -70,7 +71,7 @@ class Slice:
            ((self.slice_type == "P") or (self.slice_type == "SP")) or \
            ((self._pps.weighted_bipred_idc == 1) and (self.slice_type == "B")) :
             self.pred_weight_table()
-        if self._params["nal_ref_idc"] != 0 :
+        if self._nalu.nal_ref_idc != 0 :
             self.dec_ref_pic_marking()
         if self._pps.entropy_coding_mode_flag and \
            (self.slice_type != "I") and \
@@ -151,7 +152,7 @@ class Slice:
                         break
 
     def slice_variables(self):
-        self.PrevRefFrameNum = 0 if self._params["nal_unit_type"] == 5 else 1 # TO BE FIXED
+        self.PrevRefFrameNum = 0 if self._nalu.nal_unit_type == 5 else 1 # TO BE FIXED
         self.MbaffFrameFlag = self._sps.mb_adaptive_frame_field_flag and \
                                      (not self.field_pic_flag)
         self.PicWidthInMbs = self._sps.pic_width_in_mbs_minus1 + 1

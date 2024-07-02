@@ -1,10 +1,6 @@
-from .sps import SPS
-from .pps import PPS
-
 class NALUnit:
-    def __init__(self, bits, params):
+    def __init__(self, bits):
         self._bits = bits
-        self._params = params
 
         self.nal_unit()
 
@@ -12,10 +8,13 @@ class NALUnit:
         attrs = ', '.join(f'{k}={v}' for k, v in self.__dict__.items() if not k.startswith('_'))
         return f'NALU({attrs})'
 
+    # perform anti-emulation prevention
+    def nal_to_rbsp(self):
+        self._bits.replace('0x000003', '0x0000', bytealigned=True)
+
     def nal_unit(self):
-        if self._params["nal_unit_type"] == 14 or self._params["nal_unit_type"] == 20 or self._params["nal_unit_type"] == 21:
-            if self._params["nal_unit_type"] != 21:
-                self.svc_extension_flag = self._bits.u(1)
-            else:
-                self.avc_3d_extension_flag = self._bits.u(1)
-        
+        self.forbidden_zero_bit = self._bits.f(1)
+        self.nal_ref_idc = self._bits.u(2)
+        self.nal_unit_type = self._bits.u(5)
+
+        self.nal_to_rbsp()        
