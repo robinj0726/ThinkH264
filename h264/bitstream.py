@@ -4,13 +4,16 @@ class H264BitStream:
     def __init__(self, bits):
         self._bits = bits[24:]
 
-        # function delegation
-        self.replace = self._bits.replace
-
+        self.nal_to_rbsp()
+        
     @property
     def pos(self):
         return self._bits.pos
-    
+
+    # perform anti-emulation prevention
+    def nal_to_rbsp(self):
+        self._bits.replace('0x000003', '0x0000', bytealigned=True)
+
     def __repr__(self):
         return f'BitStream(data="{self._bits}")'
         

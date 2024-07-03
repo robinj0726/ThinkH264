@@ -4,17 +4,11 @@ class NALUnit:
         # self.NumBytesInRBSP = 0 
         # self.nalUnitHeaderBytes = 1
 
-        self.nal_to_rbsp()  
-
         self.nal_unit()
 
     def __repr__(self):
         attrs = ', '.join(f'{k}={v}' for k, v in self.__dict__.items() if not k.startswith('_'))
         return f'NALU({attrs})'
-
-    # perform anti-emulation prevention
-    def nal_to_rbsp(self):
-        self._bits.replace('0x000003', '0x0000', bytealigned=True)
 
     def nal_unit(self):
         self.forbidden_zero_bit = self._bits.f(1)
