@@ -32,7 +32,10 @@ class H264BitStream:
     
     def se(self):
         return self._bits.read('se')
-
+    
+    def ae(self):
+        raise NotImplementedError("Arithmetic encoding not implemented")
+    
     def byte_aligned(self):
         return self._bits.pos % 8 == 0
 
