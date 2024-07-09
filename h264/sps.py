@@ -1,5 +1,4 @@
 import numpy as np
-from .tracer import tracer
 
 class SPS:
     def __init__(self, bits):
@@ -58,7 +57,7 @@ class SPS:
             self.num_ref_frames_in_pic_order_cnt_cycle = self._bits.read_ue_v("SPS: num_ref_frames_in_pic_order_cnt_cycle")
             self.offset_for_ref_frame = []
             for i in range(self.num_ref_frames_in_pic_order_cnt_cycle):
-                self.offset_for_ref_frame.append(self.se())
+                self.offset_for_ref_frame.append(self._bits.read_se_v(f"SPS: offset_for_ref_frame[{i}]"))
         self.max_num_ref_frames = self._bits.read_ue_v("SPS: max_num_ref_frames")
         self.gaps_in_frame_num_value_allowed_flag = self._bits.read_u_1("SPS: gaps_in_frame_num_value_allowed_flag")
         self.pic_width_in_mbs_minus1 = self._bits.read_ue_v("SPS: pic_width_in_mbs_minus1")
