@@ -25,28 +25,28 @@ class Slice:
     def slice_header(self):
         self.IdrPicFlag = 1 if self._nalu.nal_unit_type == 5 else 0
 
-        self.first_mb_in_slice = self._bits.ue()
-        self.slice_type_int = self._bits.ue()
+        self.first_mb_in_slice = self._bits.read_ue_v("first_mb_in_slice")
+        self.slice_type_int = self._bits.read_ue_v("slice_type")
         self.slice_type = SLICE_TYPES[self.slice_type_int % 5]
-        self.pic_parameter_set_id = self._bits.ue()
+        self.pic_parameter_set_id = self._bits.read_ue_v("pic_parameter_set_id")
         self._pps = self._pps_list[self.pic_parameter_set_id]
         if self._sps.separate_colour_plane_flag == 1:
-            self.colour_plane_id = self._bits.u(2)
+            self.colour_plane_id = self._bits.read_u_v(2, "colour_plane_id")
         self.frame_num = self._bits.u(self._sps.log2_max_frame_num_minus4 + 4)
         if not self._sps.frame_mbs_only_flag:
-            self.field_pic_flag = self._bits.u(1)
+            self.field_pic_flag = self._bits.read_u_1("field_pic_flag")
             if self.field_pic_flag:
-                self.bottom_field_flag = self._bits.u(1)
+                self.bottom_field_flag = self._bits.read_u_1("bottom_field_flag")
         else:
             self.field_pic_flag = 0
         if self.IdrPicFlag :
-            self.idr_pic_id = self._bits.ue()
+            self.idr_pic_id = self._bits.read_ue_v("idr_pic_id")
         if self._sps.pic_order_cnt_type == 0 :
             self.pic_order_cnt_lsb = \
                 self._bits.u(self._sps.log2_max_pic_order_cnt_lsb_minus4 + 4)
             if (self._pps.bottom_field_pic_order_in_frame_present_flag > 0) and \
                (self.field_pic_flag == 0) :
-                self.delta_pic_order_cnt_bottom = self._bits.se()
+                self.delta_pic_order_cnt_bottom = self._bits.read_se_v("delta_pic_order_cnt_bottom")
         self.delta_pic_order_cnt = []
         if (self._sps.pic_order_cnt_type == 1) and \
            (self.delta_pic_order_always_zero_flag == 0) :
@@ -54,15 +54,15 @@ class Slice:
             if self.bottom_field_pic_order_in_frame_present_flag and (not self.field_pic_flag) :
                 self.delta_pic_order_cnt.append(self._bits.se())
         if self._pps.redundant_pic_cnt_present_flag > 0 :
-            self.redundant_pic_cnt = self._bits.ue()
+            self.redundant_pic_cnt = self._bits.read_ue_v("redundant_pic_cnt")
         if self.slice_type == "B" :
-            self.direct_spatial_mv_pred_flag = self._bits.u(1)
+            self.direct_spatial_mv_pred_flag = self._bits.read_u_1("direct_spatial_mv_pred_flag")
         if self.slice_type == "P" or self.slice_type == "SP" or self.slice_type == "B" :
-            self.num_ref_idx_active_override_flag = self._bits.u(1)
+            self.num_ref_idx_active_override_flag = self._bits.read_u_1("num_ref_idx_active_override_flag")
             if self.num_ref_idx_active_override_flag > 0 :
-                self.num_ref_idx_l0_active_minus1 = self._bits.ue()
+                self.num_ref_idx_l0_active_minus1 = self._bits.read_ue_v("num_ref_idx_l0_active_minus1")
                 if self.slice_type == "B" :
-                    self.num_ref_idx_l1_active_minus1 = self._bits.ue()
+                    self.num_ref_idx_l1_active_minus1 = self._bits.read_ue_v("num_ref_idx_l1_active_minus1")
         if self._nalu.nal_unit_type == 20 or self._nalu.nal_unit_type == 21 :
             self.ref_pic_list_mvc_modification()
         else:
@@ -76,17 +76,17 @@ class Slice:
         if self._pps.entropy_coding_mode_flag and \
            (self.slice_type != "I") and \
            (self.slice_type != "SI") :
-            self.cabac_init_idc = self._bits.ue()
-        self.slice_qp_delta = self._bits.se()
+            self.cabac_init_idc = self._bits.read_ue_v("cabac_init_idc")
+        self.slice_qp_delta = self._bits.read_se_v("slice_qp_delta")
         if (self.slice_type == "SP") or (self.slice_type == "SI") :
             if self.slice_type == "SP" :
                 self.sp_for_switch_flag = self._bits.u(1)
-            self.slice_qs_delta = self._bits.se()
+            self.slice_qs_delta = self._bits.read_se_v("slice_qs_delta")
         if self._pps.deblocking_filter_control_present_flag :
-            self.disable_deblocking_filter_idc = self._bits.ue()
+            self.disable_deblocking_filter_idc = self._bits.read_ue_v("disable_deblocking_filter_idc")
             if self.disable_deblocking_filter_idc != 1 :
-                self.slice_alpha_c0_offset_div2 = self._bits.se()
-                self.slice_beta_offset_div2 = self._bits.se()
+                self.slice_alpha_c0_offset_div2 = self._bits.read_se_v("slice_alpha_c0_offset_div2")
+                self.slice_beta_offset_div2 = self._bits.read_se_v("slice_beta_offset_div2")
         if self._pps.num_slice_groups_minus1 > 0 and \
            self.slice_group_map_type >= 3 and \
            self.slice_group_map_type <= 5:
@@ -99,27 +99,27 @@ class Slice:
 
     def ref_pic_list_modification(self):
         if (self.slice_type_int % 5 != 2) and (self.slice_type_int % 5 != 4) :
-            self.ref_pic_list_modification_flag_l0 = self._bits.u(1)
+            self.ref_pic_list_modification_flag_l0 = self._bits.read_u_1("ref_pic_list_modification_flag_l0")
             if self.ref_pic_list_modification_flag_l0 :
                 while True :
-                    self.modification_of_pic_nums_idc = self._bits.ue()
+                    self.modification_of_pic_nums_idc = self._bits.read_ue_v("modification_of_pic_nums_idc")
                     if self.modification_of_pic_nums_idc == 0 or \
                        self.modification_of_pic_nums_idc == 1 :
-                        self.abs_diff_pic_num_minus1 = self._bits.ue()
+                        self.abs_diff_pic_num_minus1 = self._bits.read_ue_v("abs_diff_pic_num_minus1")
                     elif self.modification_of_pic_nums_idc == 2 :
-                        self.long_term_pic_num = self._bits.ue()
+                        self.long_term_pic_num = self._bits.read_ue_v("long_term_pic_num")
                     if self.modification_of_pic_nums_idc == 3:
                         break
         if self.slice_type_int % 5 == 1 :
-            self.ref_pic_list_modification_flag_l1 = self._bits.u(1)
+            self.ref_pic_list_modification_flag_l1 = self._bits.read_u_1("ref_pic_list_modification_flag_l1")
             if self.ref_pic_list_modification_flag_l1: 
                 while True :
-                    self.modification_of_pic_nums_idc = self._bits.ue()
+                    self.modification_of_pic_nums_idc = self._bits.read_ue_v("modification_of_pic_nums_idc")
                     if (self.modification_of_pic_nums_idc == 0) or \
                        (self.modification_of_pic_nums_idc == 1) :
-                        self.abs_diff_pic_num_minus1 = self._bits.ue()
+                        self.abs_diff_pic_num_minus1 = self._bits.read_ue_v("abs_diff_pic_num_minus1")
                     elif self.modification_of_pic_nums_idc == 2 :
-                        self.long_term_pic_num = self._bits.ue()
+                        self.long_term_pic_num = self._bits.read_ue_v("long_term_pic_num")
                     if self.modification_of_pic_nums_idc == 3 :
                         break
 
@@ -130,24 +130,24 @@ class Slice:
 
     def dec_ref_pic_marking(self):
         if self.IdrPicFlag :
-            self.no_output_of_prior_pics_flag = self._bits.u(1)
-            self.long_term_reference_flag = self._bits.u(1)
+            self.no_output_of_prior_pics_flag = self._bits.read_u_1("no_output_of_prior_pics_flag")
+            self.long_term_reference_flag = self._bits.read_u_1("long_term_reference_flag")
         else :
-            self.adaptive_ref_pic_marking_mode_flag = self._bits.u(1)
+            self.adaptive_ref_pic_marking_mode_flag = self._bits.read_u_1("adaptive_ref_pic_marking_mode_flag")
             if self.adaptive_ref_pic_marking_mode_flag :
                 while True :
-                    memory_management_control_operation = self._bits.ue()
+                    memory_management_control_operation = self._bits.read_ue_v("memory_management_control_operation")
                     self.memory_management_control_operation = memory_management_control_operation
                     if memory_management_control_operation == 1 or \
                        memory_management_control_operation == 3 :
-                        self.difference_of_pic_nums_minus1 = self._bits.ue()
+                        self.difference_of_pic_nums_minus1 = self._bits.read_ue_v("difference_of_pic_nums_minus1")
                     if memory_management_control_operation == 2 :
-                        self.long_term_pic_num = self._bits.ue()
+                        self.long_term_pic_num = self._bits.read_ue_v("long_term_pic_num")
                     if memory_management_control_operation == 3 or \
                        memory_management_control_operation == 6 :
-                        self.long_term_frame_idx = self._bits.ue()
+                        self.long_term_frame_idx = self._bits.read_ue_v("long_term_frame_idx")
                     if memory_management_control_operation == 4 :
-                        self.max_long_term_frame_idx_plus1 = self._bits.ue()
+                        self.max_long_term_frame_idx_plus1 = self._bits.read_ue_v("max_long_term_frame_idx_plus1")
                     if memory_management_control_operation == 0 :
                         break
 
@@ -173,14 +173,14 @@ class Slice:
     def slice_data(self):
         if self._pps.entropy_coding_mode_flag :
             while self.bits.byte_aligned():
-                self.cabac_alignment_one_bit = self._bits.f(1)
+                self.cabac_alignment_one_bit = self._bits.read_u_1("cabac_alignment_one_bit")
         self.CurrMbAddr = self.first_mb_in_slice * ( 1 + self.MbaffFrameFlag )
         moreDataFlag = True
         prevMbSkipped = False
         while True:
             if self.slice_type != "I" and self.slice_type != "SI" :
                 if not self._pps.entropy_coding_mode_flag :
-                    self.mb_skip_run = self.bits.ue()
+                    self.mb_skip_run = self.bits.read_ue_v("mb_skip_run")
                     prevMbSkipped = self.mb_skip_run > 0 
                     for i in range(self.mb_skip_run) :
                         self._mbs.append(Macroblock(self, len(self.mbs), pskip=True))
