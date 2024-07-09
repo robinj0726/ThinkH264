@@ -16,7 +16,8 @@ class NALUnit:
         self.nal_unit_type = self._bits.u(5)
 
         print(f"Annex B NALU w/ long/short startcode, len {len(self._bits)}, forbidden_bit {self.forbidden_zero_bit}, nal_reference_idc {self.nal_ref_idc}, nal_unit_type {self.nal_unit_type}")
-
+        print("")
+        
         if self.nal_unit_type == 14 or self.nal_unit_type == 20 or self.nal_unit_type == 21:
             if self.nal_unit_type != 21:
                 self.svc_extension_flag = self._bits.u(1)
