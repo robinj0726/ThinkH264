@@ -60,3 +60,21 @@ class H264BitStream:
     
     def read_u_1(self, symbolName):
         return self.read_u_v(1, symbolName)
+    
+    def read_ue_v(self, symbolName):
+        before = self._bits.pos
+        rValue = self.ue()
+        after = self._bits.pos
+
+        descriptor = f"ue(v)"
+        tracer.T(f"{symbolName:50} {descriptor:>5} ({rValue:>3})", after - before)
+        return rValue
+
+    def read_se_v(self, symbolName):
+        before = self._bits.pos
+        rValue = self.se()
+        after = self._bits.pos
+
+        descriptor = f"se(v)"
+        tracer.T(f"{symbolName:50} {descriptor:>5} ({rValue:>3})", after - before)
+        return rValue
