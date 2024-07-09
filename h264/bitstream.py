@@ -1,4 +1,5 @@
 from .nalunit import NALUnit
+from .tracer import tracer
 
 class H264BitStream:
     def __init__(self, bits):
@@ -17,6 +18,9 @@ class H264BitStream:
     def __repr__(self):
         return f'BitStream(data="{self._bits}")'
         
+    def __len__(self):
+        return int(self._bits.length/8.0)
+    
     def u(self,n):
         return self._bits.read(n).uint
 
@@ -47,5 +51,12 @@ class H264BitStream:
                     return True
             i -= 1
     
+    def read_u_v(self, n, symbolName):
+        rValue = self.u(n)
 
+        descriptor = f"u({n})"
+        tracer.T(f"{symbolName:50} {descriptor:>5} ({rValue:>3})", n)
+        return rValue
     
+    def read_u_1(self, symbolName):
+        return self.read_u_v(1, symbolName)
